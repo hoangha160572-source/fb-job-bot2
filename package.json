@@ -1,0 +1,16 @@
+{
+  "name": "fb-recruitment-bot",
+  "version": "1.0.0",
+  "description": "Bot cao TopCV va dang bai tuyen dung len Facebook",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "dependencies": {
+    "@sparticuz/chromium": "^122.0.0",
+    "axios": "^1.6.8",
+    "cheerio": "^1.0.0-rc.12",
+    "node-cron": "^3.0.3",
+    "puppeteer-core": "^22.6.0"
+  }
+}
