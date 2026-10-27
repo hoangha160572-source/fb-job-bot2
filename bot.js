@@ -10,7 +10,7 @@ const GROUP_DICH_ID = '1389449883381299';
 const FUNC_POST_ENDPOINT = 'https://public-api.func.vn/functions/6ad81998225b55a1275be6ec';
 const DIRECT_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhZDgxOTk4MjI1YjU1YTEyNzViZTZlYyIsInR5cGUiOiJGVU5DVElPTiIsInBsYXRmb3JtIjoiRkFDRUJPT0tfVVNFUiIsImlhdCI6MTc5MjU0Nzc2OCwiZXhwIjoxODI0MDgzNzY4fQ.s3tD880fxMIWSflOMXtStSVziikS-4m7ZLZt7zPyTuQ';
 
-// Tạo Web Server bind port cho Render
+// Tạo Web Server bind port cho Render (Bắt buộc để Render không kill service)
 const PORT = process.env.PORT || 10000;
 const HOST = '0.0.0.0';
 
@@ -102,7 +102,7 @@ Quản lý, phân công và giám sát team vận hành.
 Theo dõi doanh thu, đơn hàng, tồn kho, tỷ lệ chuyển đổi và KPI.
 Phối hợp Marketing triển khai campaign, chương trình khuyến mãi.
 Phân tích số liệu, tối ưu sản phẩm và hiệu quả kinh doanh.
-Đào tạo, đánh giá nhân sự và lập báo cáo vận hành.
+Đào tạo, đánh gia nhân sự và lập báo cáo vận hành.
 
 Yêu cầu:
 Có 2–3 năm kinh nghiệm vận hành sàn TMĐT, ưu tiên đã làm Leader.
@@ -150,8 +150,10 @@ async function scrapeAndPostToFacebook() {
     }
 }
 
+// Lên lịch tự động chạy
 cron.schedule('0 8,11,14,17,20 * * *', () => scrapeAndPostToFacebook());
 cron.schedule('30 9,12,15,18,21 * * *', () => scrapeAndPostToFacebook());
 
 console.log('🤖 Bot tuyển dụng TopCV (Format Text Chuẩn) đã sẵn sàng!');
+// Chạy thử ngay khi khởi động
 scrapeAndPostToFacebook();
