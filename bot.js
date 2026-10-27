@@ -7,10 +7,12 @@ const http = require('http');
 
 const TOPCV_URL = 'https://www.topcv.vn/tim-viec-lam-van-hanh-san-thuong-mai-dien-tu-tai-ha-noi-kl1?type_keyword=1&sba=1&locations=l1&saturday_status=0';
 const GROUP_DICH_ID = '1389449883381299'; 
-const FUNC_POST_ENDPOINT = 'https://public-api.func.vn/functions/6ad81998225b55a1275be6ec';
-const DIRECT_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhZDgxOTk4MjI1YjU1YTEyNzViZTZlYyIsInR5cGUiOiJGVU5DVElPTiIsInBsYXRmb3JtIjoiRkFDRUJPT0tfVVNFUiIsImlhdCI6MTc5MjU0Nzc2OCwiZXhwIjoxODI0MDgzNzY4fQ.s3tD880fxMIWSflOMXtStSVziikS-4m7ZLZt7zPyTuQ';
 
-// Tạo Web Server bind port cho Render (Bắt buộc để Render không kill service)
+// CẤU HÌNH ĐÚNG API CHUẨN CỦA ANH
+const FUNC_POST_ENDPOINT = 'https://public-api.func.vn/functions/6adac1f3b74fc22d67abc8d1';
+const DIRECT_TOKEN = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhZGFjMWYzYjc0ZmMyMmQ2N2FiYzhkMSIsInR5cGUiOiJGVU5DVElPTiIsInBsYXRmb3JtIjoiRkFDRUJPT0tfVVNFUiIsImlhdCI6MTc5MjcyMTM5NSwiZXhwIjoxODI0MjU3Mzk1fQ.Nw0WktAAGgf1FpAZK5YypODNGkch7M370Pd8USliI0I';
+
+// Tạo Web Server bind port cho Render
 const PORT = process.env.PORT || 10000;
 const HOST = '0.0.0.0';
 
@@ -21,22 +23,11 @@ http.createServer((req, res) => {
     console.log(`🌐 Server lang nghe thanh cong tai http://${HOST}:${PORT}`);
 });
 
-// Danh sách dự phòng phong phú nếu mạng lỗi
 const FALLBACK_JOBS = [
-    {
-        title: "Chuyên Viên Vận Hành Sàn TMĐT (TikTok Shop/Shopee)",
-        location: "Cầu Giấy - Hà Nội",
-        salary: "12–18M + thưởng"
-    },
     {
         title: "Leader Vận Hành Sàn Thương Mại Điện Tử",
         location: "Đống Đa - Hà Nội",
         salary: "15–22M"
-    },
-    {
-        title: "Nhân Viên Quản Lý Đơn Hàng & Vận Hành Sàn",
-        location: "Thanh Xuân - Hà Nội",
-        salary: "10–15M"
     }
 ];
 
@@ -45,7 +36,6 @@ async function scrapeJobsFromTopCV() {
     let browser;
     try {
         const executablePath = await chromium.executablePath();
-        
         browser = await puppeteer.launch({
             args: chromium.args,
             defaultViewport: chromium.defaultViewport,
@@ -58,7 +48,7 @@ async function scrapeJobsFromTopCV() {
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
         
         await page.goto(TOPCV_URL, { waitUntil: 'domcontentloaded', timeout: 45000 });
-        await new Promise(resolve => setTimeout(resolve, 4000));
+        await new Promise(resolve => setTimeout(resolve, 3000));
 
         const content = await page.content();
         await browser.close();
@@ -66,10 +56,9 @@ async function scrapeJobsFromTopCV() {
         const $ = cheerio.load(content);
         const jobs = [];
 
-        // Duyệt qua tất cả các tin tuyển dụng hiển thị trên trang
         $('.job-item-search-result, .job-item, .box-job-item').each((i, el) => {
             const title = $(el).find('.title a span, .title a').first().text().trim();
-            const salary = $(el).find('.title-salary, .salary').first().text().trim() || '12–18M + thưởng';
+            const salary = $(el).find('.title-salary, .salary').first().text().trim() || '15–22M';
             const location = $(el).find('.address, .job-address').first().text().trim() || 'Hà Nội';
 
             if (title && !jobs.some(j => j.title === title)) {
@@ -78,12 +67,12 @@ async function scrapeJobsFromTopCV() {
         });
 
         if (jobs.length > 0) {
-            console.log(`[${new Date().toLocaleString()}] ✅ Cào thành công ${jobs.length} việc làm khác nhau từ TopCV.`);
+            console.log(`[${new Date().toLocaleString()}] ✅ Cào thành công ${jobs.length} việc làm từ TopCV.`);
             return jobs;
         }
     } catch (error) {
         if (browser) await browser.close();
-        console.error(`[${new Date().toLocaleString()}] ⚠️ Lỗi cào TopCV, chuyển sang danh sách dự phòng:`, error.message);
+        console.error(`[${new Date().toLocaleString()}] ⚠️ Lỗi cào TopCV, chuyển sang dự phòng:`, error.message);
     }
 
     return FALLBACK_JOBS;
@@ -91,7 +80,7 @@ async function scrapeJobsFromTopCV() {
 
 function buildPostContent(job) {
     let locHeadline = job.location.includes('Hà Nội') ? job.location : `${job.location} - Hà Nội`;
-    if (locHeadline.length > 35) locHeadline = "Cầu Giấy - Hà Nội";
+    if (locHeadline.length > 35) locHeadline = "Đống Đa - Hà Nội";
 
     return `[${locHeadline}] Cần tuyển ${job.title}
 Thời gian làm việc: Thứ 2 - Thứ 7 (8h30 - 17h, nghỉ trưa 1h30p)
@@ -102,7 +91,7 @@ Quản lý, phân công và giám sát team vận hành.
 Theo dõi doanh thu, đơn hàng, tồn kho, tỷ lệ chuyển đổi và KPI.
 Phối hợp Marketing triển khai campaign, chương trình khuyến mãi.
 Phân tích số liệu, tối ưu sản phẩm và hiệu quả kinh doanh.
-Đào tạo, đánh gia nhân sự và lập báo cáo vận hành.
+Đào tạo, đánh giá nhân sự và lập báo cáo vận hành.
 
 Yêu cầu:
 Có 2–3 năm kinh nghiệm vận hành sàn TMĐT, ưu tiên đã làm Leader.
@@ -112,7 +101,7 @@ Chủ động, tư duy logic, xử lý vấn đề tốt.
 
 Quyền lợi:
 Lương cứng ${job.salary} (deal theo năng lực).
-Phụ cấp ăn trưa 25k/ngày.
+Phụ cấp ăn trua 25k/ngày.
 Đóng BHXH, BHYT theo quy định.
 Được cung cấp đầy đủ trang thiết bị làm việc.
 
@@ -122,38 +111,32 @@ Phụ cấp ăn trưa 25k/ngày.
 async function scrapeAndPostToFacebook() {
     try {
         const jobs = await scrapeJobsFromTopCV();
-        
-        // Chọn ngẫu nhiên một job khác nhau trong danh sách cào được
         const selectedJob = jobs[Math.floor(Math.random() * jobs.length)];
-        console.log(`[${new Date().toLocaleString()}] 🎲 Đã chọn ngẫu nhiên job: "${selectedJob.title}" (${selectedJob.location})`);
+        console.log(`[${new Date().toLocaleString()}] 🎲 Đã chọn ngẫu nhiên job: "${selectedJob.title}"`);
         
         const finalContent = buildPostContent(selectedJob);
-
-        console.log(`[${new Date().toLocaleString()}] 🚀 Đang gửi bài tuyển dụng lên Group Facebook...`);
+        console.log(`[${new Date().toLocaleString()}] 🚀 Đang gửi bài tuyển dụng lên Group Facebook (ID: ${GROUP_DICH_ID})...`);
 
         const postRes = await axios.post(FUNC_POST_ENDPOINT, {
             text: finalContent,
             image_urls: [],
-            group_id: GROUP_DICH_ID,
-            text_format_preset_id: ""
+            group_id: GROUP_DICH_ID
         }, {
             headers: { 
-                'Authorization': `Bearer ${DIRECT_TOKEN}`,
+                'Authorization': DIRECT_TOKEN,
                 'Content-Type': 'application/json' 
             }
         });
 
-        console.log(`[${new Date().toLocaleString()}] 🎉 ĐĂNG BÀI THÀNH CÔNG!`, postRes.data);
+        console.log(`[${new Date().toLocaleString()}] 🎉 ĐĂNG BÀI THÀNH CÔNG! Kết quả:`, JSON.stringify(postRes.data));
 
     } catch (error) {
         console.error(`[${new Date().toLocaleString()}] ❌ Lỗi khi đăng bài:`, error.response ? error.response.data : error.message);
     }
 }
 
-// Lên lịch tự động chạy
 cron.schedule('0 8,11,14,17,20 * * *', () => scrapeAndPostToFacebook());
 cron.schedule('30 9,12,15,18,21 * * *', () => scrapeAndPostToFacebook());
 
-console.log('🤖 Bot tuyển dụng TopCV (Format Text Chuẩn) đã sẵn sàng!');
-// Chạy thử ngay khi khởi động
+console.log('🤖 Bot tuyển dụng TopCV đã sẵn sàng!');
 scrapeAndPostToFacebook();
