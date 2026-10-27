@@ -8,11 +8,11 @@ const http = require('http');
 const TOPCV_URL = 'https://www.topcv.vn/tim-viec-lam-van-hanh-san-thuong-mai-dien-tu-tai-ha-noi-kl1?type_keyword=1&sba=1&locations=l1&saturday_status=0';
 const GROUP_DICH_ID = '1389449883381299'; 
 
-// CẤU HÌNH ĐÚNG API CHUẨN CỦA ANH
-const FUNC_POST_ENDPOINT = 'https://public-api.func.vn/functions/6adac1f3b74fc22d67abc8d1';
-const DIRECT_TOKEN = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhZGFjMWYzYjc0ZmMyMmQ2N2FiYzhkMSIsInR5cGUiOiJGVU5DVElPTiIsInBsYXRmb3JtIjoiRkFDRUJPT0tfVVNFUiIsImlhdCI6MTc5MjcyMTM5NSwiZXhwIjoxODI0MjU3Mzk1fQ.Nw0WktAAGgf1FpAZK5YypODNGkch7M370Pd8USliI0I';
+// CẤU HÌNH ENDPOINT VÀ TOKEN ĐÃ ĐỔI LẠI THEO NICK CỦA ANH
+const FUNC_POST_ENDPOINT = 'https://public-api.func.vn/functions/6ae0096ab74fc22d67abf7e7';
+const DIRECT_TOKEN = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhZTAwOTZhYjc0ZmMyMmQ2N2FiZjdlNyIsInR5cGUiOiJGVU5DVElPTiIsInBsYXRmb3JtIjoiRkFDRUJPT0tfVVNFUiIsImlhdCI6MTc5MzA2NzM3MCwiZXhwIjoxODI0NjAzMzcwfQ.RM8XAGheikbENQFefYlhYLUGTZ_hP1UJ14zOyUJG2oE';
 
-// Tạo Web Server bind port cho Render
+// Tạo Web Server duy trì kết nối cho Render (Port 10000)
 const PORT = process.env.PORT || 10000;
 const HOST = '0.0.0.0';
 
@@ -101,7 +101,7 @@ Chủ động, tư duy logic, xử lý vấn đề tốt.
 
 Quyền lợi:
 Lương cứng ${job.salary} (deal theo năng lực).
-Phụ cấp ăn trua 25k/ngày.
+Phụ cấp ăn trưa 25k/ngày.
 Đóng BHXH, BHYT theo quy định.
 Được cung cấp đầy đủ trang thiết bị làm việc.
 
@@ -120,7 +120,8 @@ async function scrapeAndPostToFacebook() {
         const postRes = await axios.post(FUNC_POST_ENDPOINT, {
             text: finalContent,
             image_urls: [],
-            group_id: GROUP_DICH_ID
+            group_id: GROUP_DICH_ID,
+            text_format_preset_id: "191761991491375"
         }, {
             headers: { 
                 'Authorization': DIRECT_TOKEN,
@@ -139,4 +140,3 @@ cron.schedule('0 8,11,14,17,20 * * *', () => scrapeAndPostToFacebook());
 cron.schedule('30 9,12,15,18,21 * * *', () => scrapeAndPostToFacebook());
 
 console.log('🤖 Bot tuyển dụng TopCV đã sẵn sàng!');
-scrapeAndPostToFacebook();
